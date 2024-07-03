@@ -1,0 +1,72 @@
+---
+title: "Gene Enrichment Analaysis - PB Project"
+output: html_notebook
+---
+
+```{r}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("clusterProfiler")
+
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("AnnotationDbi")
+
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("org.Hs.eg.db")
+```
+
+```{r}
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(AnnotationDbi)
+library(DOSE)
+library(ggplot2)
+```
+
+```{r}
+selectedGenes <- c("ENSG00000257017", "ENSG00000183019","ENSG00000204936"
+)
+```
+
+```{r}
+GOResults <- enrichGO(gene = selectedGenes, OrgDb = "org.Hs.eg.db", keyType = "ENSEMBL", ont = "BP")
+```
+
+```{r}
+as.data.frame(GOResults)
+```
+
+```{r}
+#Top 10 GO terms found from the selected genes
+
+enriched_terms <- head(as.data.frame(GOResults), n = 10)
+dotplot2 <- ggplot(enriched_terms, aes(x = -log10(p.adjust), y = reorder(Description, -log10(p.adjust)))) +
+  geom_point(aes(size = Count, color = -log10(p.adjust)), shape = 16) +
+  scale_size(range = c(5, 15)) +
+  scale_color_gradientn(colors = c("darkgreen", "lightgreen")) +
+  labs(x = "-log10(p.adjust)", y = "Description") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5, hjust = 1),
+        legend.position = "right")
+
+png("dotplot2.png", res = 250, width = 10, height = 6, units = "in")
+print(dotplot2)
+dev.off()
+dot_plot
+
+#Results of Over-representation analysis (ORA)
+
+fit <- plot(barplot(GO_results, showCategory = 15))
+fit2 <- plot(dotplot(GO_results, showCategory = 15))
+png("barplot.png", res = 250, width = 1400, height = 1800)
+print(fit)
+png("dotplot.png", res = 250, width = 1400, height = 1800)
+print(fit2)
+dev.off()
+```
+
